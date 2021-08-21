@@ -215,8 +215,9 @@ include_directories(
 
 
 add_executable (depthmap src/depthmap.cpp)
-# link_directories(${OpenCV_LIBRARY_DIRS})
-# add_definitions(${OpenCV_DEFINITIONS})
+link_directories(${OpenCV_LIBRARY_DIRS})
+add_definitions(${OpenCV_DEFINITIONS})
 
 target_link_libraries (depthmap ${catkin_LIBRARIES})
-# target_link_libraries (depthmap ${OpenCV_LIBRARIES})
+
+target_link_libraries (depthmap ${OpenCV_LIBRARIES})
