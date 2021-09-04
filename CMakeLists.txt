@@ -13,11 +13,17 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  sensor_msgs
   cv_bridge
-  OpenCV
+  
+  
+  
+  sensor_msgs
+  message_filters
+  
+  
+  
 )
-# find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED)
 
 
 ## System dependencies are found with CMake's conventions
@@ -112,8 +118,9 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES publish_image
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+ CATKIN_DEPENDS roscpp rospy std_msgs message_filters
 #  DEPENDS system_lib
+
 )
 
 ###########
@@ -221,3 +228,10 @@ add_definitions(${OpenCV_DEFINITIONS})
 target_link_libraries (depthmap ${catkin_LIBRARIES})
 
 target_link_libraries (depthmap ${OpenCV_LIBRARIES})
+add_executable (filterdisparity src/filterdisparity.cpp)
+link_directories(${OpenCV_LIBRARY_DIRS})
+add_definitions(${OpenCV_DEFINITIONS})
+
+target_link_libraries (filterdisparity ${catkin_LIBRARIES})
+
+target_link_libraries (filterdisparity ${OpenCV_LIBRARIES})
