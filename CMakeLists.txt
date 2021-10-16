@@ -116,7 +116,7 @@ find_package(OpenCV REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+ INCLUDE_DIRS include
 #  LIBRARIES publish_image
  CATKIN_DEPENDS roscpp rospy std_msgs message_filters
 #  DEPENDS system_lib
@@ -130,7 +130,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  # include
+  include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
@@ -221,13 +221,13 @@ include_directories(
 # catkin_add_nosetests(test)
 
 
-add_executable (depthmap src/depthmap.cpp)
-link_directories(${OpenCV_LIBRARY_DIRS})
-add_definitions(${OpenCV_DEFINITIONS})
+# add_executable (depthmap src/depthmap_node.cpp src/depth_map_implement.cpp)
+# link_directories(${OpenCV_LIBRARY_DIRS})
+# add_definitions(${OpenCV_DEFINITIONS})
 
-target_link_libraries (depthmap ${catkin_LIBRARIES})
+# target_link_libraries (depthmap ${catkin_LIBRARIES})
 
-target_link_libraries (depthmap ${OpenCV_LIBRARIES})
+# target_link_libraries (depthmap ${OpenCV_LIBRARIES})
 add_executable (filterdisparity src/filterdisparity.cpp)
 link_directories(${OpenCV_LIBRARY_DIRS})
 add_definitions(${OpenCV_DEFINITIONS})

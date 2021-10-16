@@ -6,6 +6,9 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 
+#define dbgLine std::cerr<<"LINE:"<<__LINE__<<"\n"
+#define dbg(x) std::cerr<<(#x)<<" is "<<x<<"\n"
+
 using namespace cv;
 using namespace message_filters;
 using namespace std;
@@ -78,7 +81,7 @@ void sync_callback3(const sensor_msgs::ImageConstPtr& msg1, const sensor_msgs::I
 
    Mat left_for_matcher, right_for_matcher;
    Mat left_disp,right_disp;
-   Mat left_disp_resized;
+  //  Mat left_disp_resized;
    Mat filtered_disp,solved_disp,solved_filtered_disp;
    Mat conf_map = Mat(lft.rows,lft.cols,CV_8U);
    conf_map = Scalar(255);
@@ -89,16 +92,16 @@ void sync_callback3(const sensor_msgs::ImageConstPtr& msg1, const sensor_msgs::I
     resize(rgt,right_for_matcher,Size(),0.5,0.5, INTER_LINEAR_EXACT);
   
    int max_disp=160;
-   int wsize=5;
+   int wsize=7;
   // cv::Mat disparity=cv::Mat(s1.width,s1.height,CV_8UC1);
   
   
-  int preFilterCap = 63;
-  double fbs_lambda = 128.0; // donno what it does
+  // int preFilterCap = 63;
+  // double fbs_lambda = 128.0; // donno what it does
   double vis_mult =3.0; // set//changes brightness of pixel
-  double fbs_luma=16.0; // smoothens out the image
-  double fbs_chroma=16.0; //makes it sharp
-  double fbs_spatial=8.0; //some kind of threshold higher value ma
+  // double fbs_luma=16.0; // smoothens out the image
+  // double fbs_chroma=16.0; //makes it sharp
+  // double fbs_spatial=8.0; //some kind of threshold higher value ma
   // cv::Ptr<cv::StereoSGBM> left_matcher= cv::StereoSGBM::create(16,max_disp,wsize)   ; 
 
   
@@ -110,6 +113,7 @@ void sync_callback3(const sensor_msgs::ImageConstPtr& msg1, const sensor_msgs::I
   wls_filter = createDisparityWLSFilter(left_matcher);
 
   Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
+  
   left_matcher->compute(left_for_matcher,right_for_matcher, left_disp);  
   right_matcher->compute(right_for_matcher,left_for_matcher,right_disp);
   //  cv::imshow("img1",left_disp);
@@ -125,22 +129,28 @@ void sync_callback3(const sensor_msgs::ImageConstPtr& msg1, const sensor_msgs::I
    ROS_INFO_STREAM("fuck"<<left_disp.depth()<<"fuck"<<CV_16S<<"fuck"<<!left_disp.empty());
    ROS_INFO_STREAM("fuck"<<lft.depth()<<"fuck"<<CV_8U<<"fuck"<<!lft.empty());
    ROS_INFO_STREAM("ans"<<(!left_disp.empty() && (left_disp.depth() == CV_8U || left_disp.depth() == CV_16S || left_disp.depth() == CV_16U || left_disp.depth() == CV_32F) && left_disp.channels()<=4));
-   wls_filter->filter(left_disp,lft,filtered_disp,right_disp,Rect(),rgt);
-   ROS_INFO_STREAM("hello");
+   dbgLine;
+   wls_filter->filter(left_disp,lft,filtered_disp,right_disp);
+   dbgLine;
+
    conf_map = wls_filter->getConfidenceMap();
-    // Mat left_disp_resized;
+    Mat left_disp_resized;
     resize(left_disp,left_disp_resized,lft.size());
+
+    dbgLine;
     ROI = wls_filter->getROI();
-        
+    dbgLine;
             // upscale raw disparity and ROI back for a proper comparison:
-            resize(left_disp,left_disp,Size(),2.0,2.0);
+            resize(left_disp,left_disp,Size(),2.0,2.0,INTER_LINEAR_EXACT);
+             dbgLine;
             left_disp = left_disp*2.0;
             left_disp_resized = left_disp_resized*2.0;
+            dbgLine;
             ROI = Rect(ROI.x*2,ROI.y*2,ROI.width*2,ROI.height*2);
-        
-   fastBilateralSolverFilter(lft, left_disp_resized, conf_map/255.0f, solved_disp, fbs_spatial, fbs_luma, fbs_chroma, fbs_lambda);
-  	ROS_INFO_STREAM("hello");
-    fastBilateralSolverFilter(lft, filtered_disp, conf_map/255.0f, solved_filtered_disp, fbs_spatial, fbs_luma, fbs_chroma, fbs_lambda);
+    dbgLine;
+  //  fastBilateralSolverFilter(lft, left_disp_resized, conf_map/255.0f, solved_disp, fbs_spatial, fbs_luma, fbs_chroma, fbs_lambda);
+  	// ROS_INFO_STREAM("hello");
+    // fastBilateralSolverFilter(lft, filtered_disp, conf_map/255.0f, solved_filtered_disp, fbs_spatial, fbs_luma, fbs_chroma, fbs_lambda);
    Mat raw_disp_vis;
    getDisparityVis(left_disp,raw_disp_vis,vis_mult);
    namedWindow("raw disparity", WINDOW_AUTOSIZE);
@@ -178,18 +188,19 @@ void sync_callback3(const sensor_msgs::ImageConstPtr& msg1, const sensor_msgs::I
 }
 
 int main(int argc, char **argv){
+  // sync_callback3();
   ros::init(argc, argv, "filtered_disparity");
   ros::NodeHandle nh;
   
 
   
-  // ROS_INFO("Callback entered");
-  // sync_callback3();
+  // // ROS_INFO("Callback entered");
+  // // sync_callback3();
   message_filters::Subscriber<sensor_msgs::Image> sub1(nh,"/cam0/image_raw",1);
   message_filters::Subscriber<sensor_msgs::Image> sub2(nh,"/cam1/image_raw",1);
   TimeSynchronizer<sensor_msgs::Image, sensor_msgs::Image >sync(sub1,sub2,1);
   
-  ROS_INFO("Callback entered");
+  // ROS_INFO("Callback entered");
   sync.registerCallback(boost::bind(sync_callback3, _1, _2));
   
   ros::spin();
